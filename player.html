@@ -58,7 +58,10 @@
             border: 1px solid var(--line); box-shadow: 0 30px 70px rgba(0, 0, 0, .6);
         }
         .aspect { padding-top: 56.25%; }
-        .player-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .player-frame video, .player-frame iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .player-frame video { background: #000; display: none; }
+        .player-frame.video-mode video { display: block; }
+        .player-frame.video-mode iframe { display: none; }
 
         .servers { max-width: 960px; margin: 20px auto 0; display: flex; flex-wrap: wrap; gap: 10px; }
         .server-btn {
@@ -84,15 +87,18 @@
         </header>
 
         <div class="player-area">
-            <div class="player-frame">
-                <div class="aspect"></div>
-                <iframe id="playerFrame" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
+            <div class="player-frame" id="playerFrameBox">
+                <div class="aspect">
+                    <video id="nativePlayer" controls playsinline webkit-playsinline></video>
+                    <iframe id="playerFrame" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
+                </div>
             </div>
             <div class="servers" id="servers"></div>
             <p class="note"><b>ملاحظة:</b> إذا لم يعمل المشغل فجرّب مشغلاً آخر من القائمة أعلاه. قد يتطلب بعض المشغلين تعطيل مانع الإعلانات أو السماح بالنوافذ المنبثقة.</p>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <script>
         function b64decode(str) {
             let s = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -117,6 +123,58 @@
         const post = params.get('post') || '';
         const serversEl = document.getElementById('servers');
         const frame = document.getElementById('playerFrame');
+        const box = document.getElementById('playerFrameBox');
+        const video = document.getElementById('nativePlayer');
+        let hlsInstance = null;
+
+        function stopNative() {
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+            if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+            box.classList.remove('video-mode');
+        }
+
+        function setFrame(url) {
+            stopNative();
+            frame.src = url;
+        }
+
+        function setNative(m3u8Url) {
+            stopNative();
+            box.classList.add('video-mode');
+            if (window.Hls && Hls.isSupported()) {
+                hlsInstance = new Hls({ enableWorker: true });
+                hlsInstance.loadSource(m3u8Url);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.ERROR, function (e, data) {
+                    if (data && data.fatal) hlsInstance.recoverMediaError();
+                });
+                video.play().catch(function () {});
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = m3u8Url;
+                video.play().catch(function () {});
+            } else {
+                box.classList.remove('video-mode');
+            }
+        }
+
+        function loadGovid(playUrl) {
+            stopNative();
+            fetch('/api/govid?url=' + encodeURIComponent(playUrl))
+                .then(function (r) {
+                    if (!r.ok) throw new Error('status ' + r.status);
+                    return r.text();
+                })
+                .then(function (manifest) {
+                    const blob = new Blob([manifest], { type: 'application/vnd.apple.mpegurl' });
+                    setNative(URL.createObjectURL(blob));
+                })
+                .catch(function () {
+                    box.classList.remove('video-mode');
+                    frame.src = playUrl;
+                });
+        }
 
         let servers = [];
         try {
@@ -129,7 +187,11 @@
         function loadServer(name, id, directUrl) {
             const url = directUrl || embedFor(name, id);
             if (url) {
-                frame.src = url;
+                if (url.indexOf('govid.live/play/') !== -1) {
+                    loadGovid(url);
+                } else {
+                    setFrame(url);
+                }
                 serversEl.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
             }
         }
