@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم سعودي بلاي | إضافة محتوى</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0a0a0f; color: #fff; padding: 40px 20px; min-height: 100vh; }
+        a { color: #1ba94c; text-decoration: none; }
+
+        .admin-box { background-color: #141622; padding: 30px; border-radius: 12px; width: 100%; max-width: 620px; margin: 0 auto 30px; border-top: 4px solid #1ba94c; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 6px; text-align: center; }
+        h2 .logo { color: #1ba94c; }
+        .hint { text-align: center; color: #aaa; font-size: 13px; margin-bottom: 20px; line-height: 1.7; }
+
+        .extract-box { background: #1b1e2a; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .extract-box h3 { font-size: 15px; color: #1ba94c; margin-bottom: 10px; }
+        .extract-row { display: flex; gap: 8px; }
+        .extract-row input { flex: 1; }
+        .extract-row button { flex: 0 0 150px; margin-top: 0; }
+        #extractMsg { margin-top: 10px; font-size: 13px; display: none; }
+
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; color: #ccc; }
+        input, select, textarea { width: 100%; padding: 10px; background-color: #222; border: 1px solid #333; border-radius: 6px; color: #fff; outline: none; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { border-color: #1ba94c; }
+
+        button { width: 100%; padding: 12px; background-color: #1ba94c; color: #fff; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; transition: background .3s; margin-top: 10px; }
+        button:hover { background-color: #0e7a36; }
+        button.ghost { background: #333; }
+        button.ghost:hover { background: #444; }
+
+        #result { margin-top: 20px; display: none; }
+        #jsonOutput { min-height: 180px; direction: ltr; text-align: left; font-family: Consolas, monospace; font-size: 12px; background-color: #1b1e2a; }
+
+        .steps { margin-top: 20px; padding: 15px; background-color: #1b1e2a; border-radius: 6px; border-right: 4px solid #1ba94c; font-size: 13px; line-height: 2; color: #ddd; }
+        .steps strong { color: #fff; }
+        code { color: #1ba94c; }
+        .ok { color: #4ade80; }
+        .err { color: #f87171; }
+        .status { text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h2>لوحة تحكم <span class="logo">سعودي بلاي</span></h2>
+        <p class="hint">الصق رابط صفحة الحلقة من المصدر وسيتم استخراج كل شيء تلقائياً، أو أدخل البيانات يدوياً.</p>
+
+        <div class="extract-box">
+            <h3>إضافة من الرابط (الأسرع)</h3>
+            <div class="extract-row">
+                <input type="url" id="epUrl" placeholder="الصق رابط صفحة الحلقة... مثال: https://krmizi.onl/episode/...">
+                <button type="button" onclick="extractFromUrl()" id="extractBtn">استخراج تلقائي</button>
+            </div>
+            <div id="extractMsg"></div>
+        </div>
+
+        <h3 style="color:#1ba94c; font-size:15px; margin-bottom:12px;">أو الإدخال اليدوي:</h3>
+
+        <form id="adminForm">
+            <div class="form-group">
+                <label for="title">اسم المسلسل أو الفيلم:</label>
+                <input type="text" id="title" name="title" placeholder="مثال: مسلسل طائر الرفراف">
+            </div>
+
+            <div class="form-group">
+                <label for="episode">رقم الحلقة أو شارة العرض:</label>
+                <input type="text" id="episode" name="episode" placeholder="مثال: الحلقة 12 أو فيلم">
+            </div>
+
+            <div class="form-group">
+                <label for="category">التصنيف:</label>
+                <select id="category" name="category">
+                    <option value="دراما">دراما</option>
+                    <option value="تاريخي">تاريخي</option>
+                    <option value="رومانسي">رومانسي</option>
+                    <option value="أكشن">أكشن</option>
+                    <option value="مغامرة">مغامرة</option>
+                    <option value="كوميدي">كوميدي</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="poster">رابط صورة البوستر (اختياري):</label>
+                <input type="url" id="poster" name="poster" placeholder="ضع رابط مباشر لصورة البوستر">
+            </div>
+
+            <div class="form-group">
+                <label for="video_url">رابط المشغل (player.html?post=...) أو كود التضمين:</label>
+                <textarea id="video_url" name="video_url" rows="3" placeholder="بعد الاستخراج سيمتلئ تلقائياً"></textarea>
+            </div>
+
+            <button type="submit">توليد كود الحلقة</button>
+        </form>
+
+        <div id="result">
+            <label for="jsonOutput">الكود الناتج (انسخه):</label>
+            <textarea id="jsonOutput" readonly></textarea>
+            <button type="button" id="copyBtn">نسخ الكود</button>
+        </div>
+
+        <div class="steps">
+            <strong>طريقة النشر:</strong><br>
+            1. انسخ الكود الناتج.<br>
+            2. أرسله لي في المحادثة، أو أضفه إلى <code>movies_data.json</code>.<br>
+            3. أنشر الموقع وستظهر الحلقة في الرئيسية.
+        </div>
+    </div>
+
+    <script>
+        function setMsg(text, ok) {
+            const el = document.getElementById('extractMsg');
+            el.textContent = text;
+            el.className = ok ? 'ok' : 'err';
+            el.style.display = 'block';
+        }
+
+        function splitTitle(raw) {
+            let t = (raw || '').trim();
+            let ep = '';
+            const m = t.match(/(.+?)\s*(الحلقة\s*\d+)/i);
+            if (m) {
+                t = m[1].trim();
+                ep = m[2].trim();
+            } else {
+                const num = t.match(/(.+?)\s*[-]\s*(\d+)$/);
+                if (num) {
+                    t = num[1].trim();
+                    ep = 'الحلقة ' + num[2];
+                }
+            }
+            t = t.replace(/^(\d+\s*[-–]\s*)/, '');
+            t = t.replace(/\s*-\s*[^-]*$/, '');
+            return { title: t.trim(), episode: ep };
+        }
+
+        async function extractFromUrl() {
+            const url = document.getElementById('epUrl').value.trim();
+            const btn = document.getElementById('extractBtn');
+            if (!url) { setMsg('يُرجى إدخال رابط الحلقة أولاً.', false); return; }
+            btn.disabled = true;
+            btn.textContent = 'جارٍ الاستخراج...';
+            setMsg('', true);
+            try {
+                const r = await fetch('/api/extract?url=' + encodeURIComponent(url));
+                const data = await r.json();
+                if (data.post) {
+                    const parts = splitTitle(data.title);
+                    document.getElementById('title').value = parts.title;
+                    document.getElementById('episode').value = parts.episode || 'الحلقة 1';
+                    if (data.poster) document.getElementById('poster').value = data.poster;
+                    document.getElementById('video_url').value = 'player.html?post=' + data.post;
+                    setMsg('تم الاستخراج بنجاح! تم تعبئة الحقول. اضغط "توليد كود الحلقة".', true);
+                } else {
+                    setMsg('تعذر العثور على بيانات التشغيل: ' + (data.error || 'رابط غير صالح'), false);
+                }
+            } catch (e) {
+                setMsg('خطأ في الاتصال: ' + e.message, false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'استخراج تلقائي';
+            }
+        }
+
+        document.getElementById('adminForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const movie = {
+                id: String(Date.now()),
+                title: document.getElementById('title').value.trim(),
+                episode_number: document.getElementById('episode').value.trim(),
+                category: document.getElementById('category').value,
+                poster_url: document.getElementById('poster').value.trim(),
+                video_url: document.getElementById('video_url').value.trim()
+            };
+            if (!movie.title || !movie.video_url) {
+                setMsg('الاسم ورابط التشغيل مطلوبان.', false);
+                return;
+            }
+            document.getElementById('jsonOutput').value = JSON.stringify(movie, null, 2);
+            document.getElementById('result').style.display = 'block';
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', function () {
+            const output = document.getElementById('jsonOutput');
+            output.select();
+            output.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(output.value).then(() => {
+                this.textContent = 'تم النسخ بنجاح!';
+                setTimeout(() => { this.textContent = 'نسخ الكود'; }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>

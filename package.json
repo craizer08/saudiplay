@@ -1,0 +1,10 @@
+{
+  "name": "saudiplay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "أكبر منصة سعودية مجانية للمسلسلات والأفلام",
+  "scripts": {
+    "crawl": "node scripts/crawl_shahid.js run-all 3",
+    "merge": "node scripts/merge_shahid.js"
+  }
+}

@@ -1,0 +1,42 @@
+name: Daily Content Update
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Crawl Shahid4u
+        run: node scripts/crawl_shahid.js run-all 3
+        env:
+          PROXY_URL: ${{ secrets.PROXY_URL }}
+
+      - name: Merge into movies_data.json
+        run: node scripts/merge_shahid.js
+
+      - name: Commit and push updates
+        run: |
+          git config user.name "saudiplay-bot"
+          git config user.email "saudiplay-bot@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "chore: daily content update $(date +%F)"
+          git push
