@@ -102,7 +102,7 @@ async function resolveGovid(play) {
         if (!hex) throw new Error('Mohix not found');
         const m3u8 = hexToStr(hex);
         if (!m3u8.startsWith('http')) throw new Error('invalid m3u8');
-        return { kind: 'hls', url: m3u8, passDomain: '' };
+        return { kind: 'e', url: m3u8, passDomain: '' };
     }
 
     // النمط الجديد: fastvid.cam/embed/<id> → unpacked links.hls2/hls3
@@ -115,7 +115,7 @@ async function resolveGovid(play) {
     const m3u8 = extractFastvid(t3);
     if (!m3u8.startsWith('http')) throw new Error('fastvid no hls');
     // hls2 = ACAO * => مباشر. hls3 = ACAO مقيد لـ fastvid.cam => نمرر عبر البروكسي
-    return { kind: 'hls', url: m3u8, passDomain: m3u8.includes('futureengineering') ? 'futureengineering.space' : '' };
+    return { kind: 'fv', url: m3u8, passDomain: m3u8.includes('futureengineering') ? 'futureengineering.space' : '' };
 }
 
 export default async function handler(request) {
@@ -148,12 +148,14 @@ export default async function handler(request) {
 
     try {
         const { kind, url: m3u8, passDomain } = await resolveGovid(play);
-
         const r3 = await fetch(m3u8, {
-            headers: { 'User-Agent': UA, 'Referer': 'https://fastvid.cam/', 'Accept': '*/*' },
+            headers: { 'User-Agent': UA, 'Referer': kind === 'e' ? 'https://govid.live/' : 'https://fastvid.cam/', 'Accept': '*/*' },
             redirect: 'follow'
         });
         const t3 = await r3.text();
+        if (url.searchParams.get('debug') === '1') {
+            return json({ dbg: { m3u8, status: r3.status, head: t3.slice(0, 300) } });
+        }
         if (r3.status !== 200 || /^\s*404/.test(t3)) throw new Error('m3u8 ' + r3.status);
 
         const manifest = rewritePlaylist(t3, m3u8, passDomain);
