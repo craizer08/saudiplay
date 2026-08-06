@@ -33,6 +33,9 @@ jobs:
       - name: Merge into movies_data.json
         run: node scripts/merge_shahid.js
 
+      - name: Crawl WeCima programs & series
+        run: node scripts/crawl_wemycima.js
+
       - name: Commit and push updates
         run: |
           git config user.name "saudiplay-bot"
