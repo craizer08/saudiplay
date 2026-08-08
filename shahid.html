@@ -158,6 +158,17 @@
         .player-frame video { display: none; }
         .player-frame.video-mode video { display: block; }
         .player-frame.video-mode iframe { display: none; }
+        .skip-ad {
+            position: absolute; top: 10px; right: 10px; z-index: 30;
+            display: none; align-items: center; gap: 6px;
+            background: rgba(11, 11, 15, .78); color: #fff;
+            border: 1px solid var(--red); border-radius: 8px;
+            padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer; backdrop-filter: blur(4px); transition: all .2s;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
+        }
+        .skip-ad:hover { background: var(--red); transform: scale(1.05); }
+        .skip-ad.visible { display: flex; }
         .player-note { color: var(--mut); font-size: 12px; margin-top: 10px; line-height: 1.9; }
         .drm-warn { margin: 14px 0; padding: 12px 16px; border-radius: 8px; background: rgba(229, 9, 20, .12); border: 1px solid rgba(229, 9, 20, .4); color: var(--text); font-size: 13px; line-height: 1.9; display: none; }
         .drm-warn a { color: var(--red-light); font-weight: 700; text-decoration: underline; }
@@ -496,7 +507,7 @@
                 .then(r => r.json())
                 .then(d => {
                     const eps = d.items || [];
-                    area.innerHTML = '<div class="eps-label">اختر الحلقة</div><div class="eps"></div><div class="drm-warn" id="drmWarn"></div><div class="player-frame" id="epPlayer"><iframe allowfullscreen></iframe></div><p class="player-note" id="epNote"></p>';
+                    area.innerHTML = '<div class="eps-label">اختر الحلقة</div><div class="eps"></div><div class="drm-warn" id="drmWarn"></div><div class="player-frame" id="epPlayer"><iframe allowfullscreen></iframe><button class="skip-ad" type="button">&#9197;&#65039; تخطي الإعلان</button></div><p class="player-note" id="epNote"></p>';
                     const wrap = area.querySelector('.eps');
                     if (!eps.length) {
                         area.querySelector('.eps-label').textContent = 'لا توجد حلقات في هذا الموسم.';
@@ -518,7 +529,7 @@
             const body = document.getElementById('itemBody');
             body.innerHTML = `
                 <div class="drm-warn" id="drmWarn"></div>
-                <div class="player-frame" id="epPlayer"><iframe allowfullscreen></iframe></div>
+                <div class="player-frame" id="epPlayer"><iframe allowfullscreen></iframe><button class="skip-ad" type="button">&#9197;&#65039; تخطي الإعلان</button></div>
                 <p class="player-note" id="epNote"></p>
                 <p class="player-note">إذا لم يعمل المشغل فجرّب مصدراً آخر من القائمة أعلاه. بعض محتويات شاهد محمية بترخيص DRM وقد لا تعمل في المتصفح.</p>
             `;
@@ -550,6 +561,8 @@
             const note = area.querySelector('#epNote');
             const warn = area.querySelector('#drmWarn');
             const iframe = player.querySelector('iframe');
+            const skipBtn = player.querySelector('.skip-ad');
+            if (skipBtn) skipBtn.classList.remove('visible');
             player.classList.remove('video-mode');
             let v = player.querySelector('video');
             if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
@@ -559,7 +572,23 @@
 
             // 1) مصادر مفتوحة مطابقة من بيانات الموقع
             const openMatches = findOpenServers(title, epNum);
-            const openServersList = openMatches.length ? openMatches[0].servers : [];
+            let openServersList = openMatches.length ? openMatches[0].servers : [];
+            currentServersList = openServersList;
+
+            // 1.5) مصادر NyumatFlix إضافية (TMDB) — أفلام/مسلسلات
+            try {
+                const rr = await fetch('/api/resolve?q=' + encodeURIComponent(title) + '&type=' + (epNum ? 'series' : 'movie'));
+                const dd = await rr.json();
+                if (dd && dd.tmdbId) {
+                    const nfx = epNum
+                        ? NFX_TV(dd.tmdbId, 1, epNum)
+                        : NFX_MOVIE(dd.tmdbId);
+                    if (nfx.length) {
+                        openServersList = openServersList.concat(nfx);
+                        currentServersList = openServersList;
+                    }
+                }
+            } catch (e) { /* مصادر محلية فقط */ }
 
             // 2) محاولة التشغيل المجاني الرسمي من شاهد
             let official = null;
@@ -633,12 +662,16 @@
                 window.open('/' + u, '_blank');
             } else {
                 const iframe = player.querySelector('iframe');
+                const skipBtn = player.querySelector('.skip-ad');
+                if (skipBtn) skipBtn.classList.add('visible');
                 iframe.src = u;
             }
         }
 
         function playNative(player, url) {
             player.classList.add('video-mode');
+            const skipBtn = player.querySelector('.skip-ad');
+            if (skipBtn) skipBtn.classList.add('visible');
             const v = player.querySelector('video') || (() => {
                 const n = document.createElement('video');
                 n.controls = true;
@@ -673,9 +706,59 @@
                     playNative(player, URL.createObjectURL(blob));
                 })
                 .catch(function () {
+                    const skipBtn = player.querySelector('.skip-ad');
+                    if (skipBtn) skipBtn.classList.add('visible');
                     iframe.src = playUrl;
                 });
         }
+
+        // ---------- مصادر NyumatFlix (TMDB) ----------
+        const NFX_PROVIDERS = [
+            { name: 'VidSrc', movie: id => 'https://vsembed.ru/embed/movie?tmdb=' + id, tv: (id, s, e) => 'https://vsembed.ru/embed/tv?tmdb=' + id + '&season=' + s + '&episode=' + e },
+            { name: 'VidSrc Mirror', movie: id => 'https://vidsrc.wtf/embed/movie?tmdb=' + id, tv: (id, s, e) => 'https://vidsrc.wtf/embed/tv?tmdb=' + id + '&season=' + s + '&episode=' + e },
+            { name: 'SuperEmbed', movie: id => 'https://multiembed.mov/?video_id=' + id + '&tmdb=1', tv: (id, s, e) => 'https://multiembed.mov/?video_id=' + id + '&tmdb=1&s=' + s + '&e=' + e },
+            { name: '2Embed', movie: id => 'https://www.2embed.cc/embed/' + id, tv: (id, s, e) => 'https://www.2embed.cc/embedtv/' + id + '&s=' + s + '&e=' + e },
+            { name: '111Movies', movie: id => 'https://111movies.com/movie/' + id, tv: (id, s, e) => 'https://111movies.com/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidNest', movie: id => 'https://vidnest.fun/movie/' + id, tv: (id, s, e) => 'https://vidnest.fun/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidFast', movie: id => 'https://vidfast.pro/movie/' + id + '?autoPlay=true', tv: (id, s, e) => 'https://vidfast.pro/tv/' + id + '/' + s + '/' + e + '?autoPlay=true&nextButton=true&autoNext=true' },
+            { name: 'VidEasy', movie: id => 'https://player.videasy.net/movie/' + id, tv: (id, s, e) => 'https://player.videasy.net/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidKing', movie: id => 'https://www.vidking.net/embed/movie/' + id + '?color=9146ff&autoPlay=true', tv: (id, s, e) => 'https://www.vidking.net/embed/tv/' + id + '/' + s + '/' + e + '?color=9146ff&autoPlay=true&nextEpisode=true&episodeSelector=true' },
+            { name: 'VixSrc', movie: id => 'https://vixsrc.to/movie/' + id, tv: (id, s, e) => 'https://vixsrc.to/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidLink', movie: id => 'https://vidlink.pro/movie/' + id, tv: (id, s, e) => 'https://vidlink.pro/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidCore', movie: id => 'https://www.vidcore.org/embed/movie/' + id, tv: (id, s, e) => 'https://www.vidcore.org/embed/tv/' + id + '/' + s + '/' + e },
+            { name: '1Embed', movie: id => 'https://1embed.cc/embed/movie/' + id, tv: (id, s, e) => 'https://1embed.cc/embed/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidLux', movie: id => 'https://vidlux.xyz/embed/movie/' + id, tv: (id, s, e) => 'https://vidlux.xyz/embed/tv/' + id + '/' + s + '/' + e }
+        ];
+        function NFX_MOVIE(id) { return NFX_PROVIDERS.map(p => ({ name: p.name, id: 'nfx', url: p.movie(id) })); }
+        function NFX_TV(id, s, e) { return NFX_PROVIDERS.map(p => ({ name: p.name, id: 'nfx', url: p.tv(id, s, e) })); }
+
+        // ---------- تخطي الإعلان ----------
+        let currentServersList = [];
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.skip-ad');
+            if (!btn) return;
+            const frame = btn.closest('.player-frame');
+            if (!frame) return;
+            const v = frame.querySelector('video');
+            if (frame.classList.contains('video-mode') && v) {
+                if (v.duration && isFinite(v.duration) && v.duration > 0) {
+                    v.currentTime = Math.min(v.duration - 2, v.currentTime + 30);
+                } else {
+                    v.currentTime += 30;
+                }
+                if (v.paused) v.play().catch(function () {});
+                return;
+            }
+            const govid = (currentServersList || []).find(function (s) { return s.url && s.url.indexOf('govid.live/play/') !== -1; });
+            if (govid) { loadGovid(frame, govid.url); return; }
+            const iframe = frame.querySelector('iframe');
+            const cur = iframe.src;
+            if (cur) {
+                if (cur.indexOf('govid.live/play/') !== -1) { loadGovid(frame, cur); return; }
+                iframe.removeAttribute('src');
+                setTimeout(function () { iframe.src = cur; }, 80);
+            }
+        });
 
         function dismissModal() {
             document.getElementById('modal').classList.remove('open');

@@ -67,6 +67,17 @@
         .player-frame video { background: #000; display: none; }
         .player-frame.video-mode video { display: block; }
         .player-frame.video-mode iframe { display: none; }
+        .skip-ad {
+            position: absolute; top: 10px; right: 10px; z-index: 30;
+            display: none; align-items: center; gap: 6px;
+            background: rgba(11, 11, 15, .78); color: #fff;
+            border: 1px solid var(--red); border-radius: 8px;
+            padding: 8px 14px; font-family: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer; backdrop-filter: blur(4px); transition: all .2s;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
+        }
+        .skip-ad:hover { background: var(--red); transform: scale(1.05); }
+        .skip-ad.visible { display: flex; }
 
         .servers { max-width: 960px; margin: 20px auto 0; display: flex; flex-wrap: wrap; gap: 10px; }
         .server-btn {
@@ -96,10 +107,13 @@
                 <video id="nativePlayer" controls playsinline webkit-playsinline></video>
                 <iframe id="playerFrame" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe>
             </div>
+            <button class="skip-ad" id="skipAd" type="button">&#9197;&#65039; تخطي الإعلان</button>
         </div>
         <div class="servers" id="servers"></div>
         <div class="servers" id="tpbList"></div>
         <p class="note" id="tpbStatus"></p>
+        <div class="servers" id="nfxServers"></div>
+        <p class="note" id="nfxStatus"></p>
         <p class="note"><b>ملاحظة:</b> إذا لم يعمل المشغل فجرّب مشغلاً آخر من القائمة أعلاه. قد يتطلب بعض المشغلين تعطيل مانع الإعلانات أو السماح بالنوافذ المنبثقة.</p>
     </div>
 
@@ -130,8 +144,13 @@
         const frame = document.getElementById('playerFrame');
         const box = document.getElementById('playerFrameBox');
         const video = document.getElementById('nativePlayer');
+        const skipAd = document.getElementById('skipAd');
         let hlsInstance = null;
         let wtClient = null;
+        let lastFrameUrl = '';
+
+        function showSkip() { skipAd.classList.add('visible'); }
+        function hideSkip() { skipAd.classList.remove('visible'); }
 
         function stopTorrent() {
             if (wtClient) { try { wtClient.destroy(); } catch (e) {} wtClient = null; }
@@ -148,12 +167,15 @@
 
         function setFrame(url) {
             stopNative();
+            lastFrameUrl = url;
             frame.src = url;
+            showSkip();
         }
 
         function setNative(m3u8Url) {
             stopNative();
             box.classList.add('video-mode');
+            showSkip();
             if (window.Hls && Hls.isSupported()) {
                 hlsInstance = new Hls({ enableWorker: true });
                 hlsInstance.loadSource(m3u8Url);
@@ -183,7 +205,9 @@
                 })
                 .catch(function () {
                     box.classList.remove('video-mode');
+                    lastFrameUrl = playUrl;
                     frame.src = playUrl;
+                    showSkip();
                 });
         }
 
@@ -322,6 +346,7 @@
         function playTorrent(stream) {
             stopNative();
             box.classList.add('video-mode');
+            showSkip();
             frame.removeAttribute('src');
             tpbNote('⏳ جارٍ تحميل WebTorrent والاتصال بالتورنت...');
             ensureWebTorrent(function () {
@@ -372,6 +397,88 @@
         tpbBtn.textContent = '⚡ TPB+ تورنت';
         tpbBtn.addEventListener('click', openTpb);
         serversEl.appendChild(tpbBtn);
+
+        // ---------- NyumatFlix (مصادر TMDB إضافية) ----------
+        const nfxServers = document.getElementById('nfxServers');
+        const nfxStatus = document.getElementById('nfxStatus');
+        const NFX_PROVIDERS = [
+            { name: 'VidSrc', movie: id => 'https://vsembed.ru/embed/movie?tmdb=' + id, tv: (id, s, e) => 'https://vsembed.ru/embed/tv?tmdb=' + id + '&season=' + s + '&episode=' + e },
+            { name: 'VidSrc Mirror', movie: id => 'https://vidsrc.wtf/embed/movie?tmdb=' + id, tv: (id, s, e) => 'https://vidsrc.wtf/embed/tv?tmdb=' + id + '&season=' + s + '&episode=' + e },
+            { name: 'SuperEmbed', movie: id => 'https://multiembed.mov/?video_id=' + id + '&tmdb=1', tv: (id, s, e) => 'https://multiembed.mov/?video_id=' + id + '&tmdb=1&s=' + s + '&e=' + e },
+            { name: '2Embed', movie: id => 'https://www.2embed.cc/embed/' + id, tv: (id, s, e) => 'https://www.2embed.cc/embedtv/' + id + '&s=' + s + '&e=' + e },
+            { name: '111Movies', movie: id => 'https://111movies.com/movie/' + id, tv: (id, s, e) => 'https://111movies.com/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidNest', movie: id => 'https://vidnest.fun/movie/' + id, tv: (id, s, e) => 'https://vidnest.fun/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidFast', movie: id => 'https://vidfast.pro/movie/' + id + '?autoPlay=true', tv: (id, s, e) => 'https://vidfast.pro/tv/' + id + '/' + s + '/' + e + '?autoPlay=true&nextButton=true&autoNext=true' },
+            { name: 'VidEasy', movie: id => 'https://player.videasy.net/movie/' + id, tv: (id, s, e) => 'https://player.videasy.net/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidKing', movie: id => 'https://www.vidking.net/embed/movie/' + id + '?color=9146ff&autoPlay=true', tv: (id, s, e) => 'https://www.vidking.net/embed/tv/' + id + '/' + s + '/' + e + '?color=9146ff&autoPlay=true&nextEpisode=true&episodeSelector=true' },
+            { name: 'VixSrc', movie: id => 'https://vixsrc.to/movie/' + id, tv: (id, s, e) => 'https://vixsrc.to/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidLink', movie: id => 'https://vidlink.pro/movie/' + id, tv: (id, s, e) => 'https://vidlink.pro/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidCore', movie: id => 'https://www.vidcore.org/embed/movie/' + id, tv: (id, s, e) => 'https://www.vidcore.org/embed/tv/' + id + '/' + s + '/' + e },
+            { name: '1Embed', movie: id => 'https://1embed.cc/embed/movie/' + id, tv: (id, s, e) => 'https://1embed.cc/embed/tv/' + id + '/' + s + '/' + e },
+            { name: 'VidLux', movie: id => 'https://vidlux.xyz/embed/movie/' + id, tv: (id, s, e) => 'https://vidlux.xyz/embed/tv/' + id + '/' + s + '/' + e }
+        ];
+
+        function nfxNote(msg) { nfxStatus.textContent = msg || ''; }
+
+        function buildNfx() {
+            if (!qTitle) { nfxServers.style.display = 'none'; return; }
+            nfxServers.innerHTML = '';
+            nfxNote('⏳ جارٍ البحث عن مصادر NyumatFlix...');
+            fetch('/api/resolve?q=' + encodeURIComponent(qTitle) + '&type=' + qType)
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (!d || !d.tmdbId) {
+                        nfxNote('لا توجد مصادر NyumatFlix لهذا العنوان' + ((d && d.error) ? ' (' + d.error + ')' : '') + '.');
+                        return;
+                    }
+                    const isMovie = qType === 'movie';
+                    const list = NFX_PROVIDERS.map(p => ({ name: p.name, url: isMovie ? p.movie(d.tmdbId) : p.tv(d.tmdbId, 1, qEp) }));
+                    nfxNote('اختر مصدراً إضافياً:');
+                    list.forEach((s, i) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'server-btn' + (i === 0 ? ' active' : '');
+                        btn.textContent = 'NyumatFlix - ' + s.name;
+                        btn.addEventListener('click', function () {
+                            nfxServers.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            setFrame(s.url);
+                        });
+                        nfxServers.appendChild(btn);
+                    });
+                })
+                .catch(function (e) { nfxNote('خطأ في جلب مصادر NyumatFlix: ' + e.message); });
+        }
+        buildNfx();
+
+        // ---------- تخطي الإعلان ----------
+        skipAd.addEventListener('click', function () {
+            if (box.classList.contains('video-mode')) {
+                // تدفق أصلي: القفز للأمام لتجاوز مقطع إعلاني
+                if (video.duration && isFinite(video.duration) && video.duration > 0) {
+                    video.currentTime = Math.min(video.duration - 2, video.currentTime + 30);
+                } else {
+                    video.currentTime += 30;
+                }
+                if (video.paused) video.play().catch(function () {});
+                return;
+            }
+            // وضع iframe: الأفضلية للانتقال لأي سيرفر goVid (تشغيل أصلي بلا إعلانات)
+            const govidServer = servers.find(function (s) { return s.url && s.url.indexOf('govid.live/play/') !== -1; });
+            if (govidServer) {
+                loadGovid(govidServer.url);
+                return;
+            }
+            if (lastFrameUrl && lastFrameUrl.indexOf('govid.live/play/') !== -1) {
+                loadGovid(lastFrameUrl);
+                return;
+            }
+            // لا يوجد سيرفر أصلي: إعادة تحميل الإطار لمسح الإعلانات المنبثقة
+            if (frame.src) {
+                const cur = frame.src;
+                frame.removeAttribute('src');
+                setTimeout(function () { frame.src = cur; }, 80);
+            }
+        });
     </script>
 </body>
 </html>
