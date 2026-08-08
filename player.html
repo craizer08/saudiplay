@@ -94,6 +94,8 @@
                 </div>
             </div>
             <div class="servers" id="servers"></div>
+            <div class="servers" id="tpbList"></div>
+            <p class="note" id="tpbStatus"></p>
             <p class="note"><b>ملاحظة:</b> إذا لم يعمل المشغل فجرّب مشغلاً آخر من القائمة أعلاه. قد يتطلب بعض المشغلين تعطيل مانع الإعلانات أو السماح بالنوافذ المنبثقة.</p>
         </div>
     </div>
@@ -126,12 +128,18 @@
         const box = document.getElementById('playerFrameBox');
         const video = document.getElementById('nativePlayer');
         let hlsInstance = null;
+        let wtClient = null;
+
+        function stopTorrent() {
+            if (wtClient) { try { wtClient.destroy(); } catch (e) {} wtClient = null; }
+        }
 
         function stopNative() {
             video.pause();
             video.removeAttribute('src');
             video.load();
             if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+            stopTorrent();
             box.classList.remove('video-mode');
         }
 
@@ -211,6 +219,116 @@
             });
             loadServer(servers[0].name, servers[0].id, servers[0].url);
         }
+
+        // ---------- TPB+ تورنت ----------
+        const qTitle = params.get('t') || '';
+        const qType = params.get('ty') === 'movie' ? 'movie' : 'series';
+        const qEp = parseInt(params.get('e') || '', 10) || 1;
+        const tpbStatus = document.getElementById('tpbStatus');
+        const tpbList = document.getElementById('tpbList');
+
+        function tpbNote(msg) { tpbStatus.textContent = msg || ''; }
+
+        function openTpb() {
+            if (!qTitle) { tpbNote('لا يتوفر عنوان لهذه الحلقة لإجراء بحث TPB+. أعد فتح المشغل من الصفحة الرئيسية.'); return; }
+            tpbList.innerHTML = '';
+            tpbNote('⏳ جارٍ البحث عن تدفقات TPB+...');
+            ensureWebTorrent();
+            fetch('/api/resolve?q=' + encodeURIComponent(qTitle) + '&type=' + qType)
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    if (!res || !res.imdbId) {
+                        tpbNote('تعذّر تحويل العنوان إلى IMDb: ' + ((res && res.error) || 'لا توجد مطابقة.'));
+                        return null;
+                    }
+                    return fetch('/api/tpb?imdb=' + res.imdbId + '&type=' + qType + (qType === 'series' ? '&season=1&episode=' + qEp : '')).then(function (r) { return r.json(); });
+                })
+                .then(function (d) {
+                    if (!d) return;
+                    if (!d.streams || !d.streams.length) {
+                        tpbNote('لا توجد تدفقات TPB+ متاحة لهذا المحتوى حالياً. جرب لاحقاً أو استخدم المشغلات أعلاه.');
+                        return;
+                    }
+                    tpbNote('اختر تدفقاً: (الجودة الأعلى أولاً)');
+                    d.streams.forEach(function (st) {
+                        const btn = document.createElement('button');
+                        btn.className = 'server-btn';
+                        const meta = [st.quality, st.size, st.seeders != null ? '👤 ' + st.seeders : null].filter(Boolean).join(' · ');
+                        btn.textContent = meta + ' — ' + st.name;
+                        btn.title = st.name;
+                        btn.addEventListener('click', function () {
+                            tpbList.querySelectorAll('.server-btn').forEach(function (b) { b.classList.remove('active'); });
+                            btn.classList.add('active');
+                            playTorrent(st);
+                        });
+                        tpbList.appendChild(btn);
+                    });
+                })
+                .catch(function (err) { tpbNote('خطأ في جلب التدفقات: ' + err.message); });
+        }
+
+        function ensureWebTorrent(cb) {
+            if (window.WebTorrent) { if (cb) cb(); return; }
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/webtorrent@1.9.7/webtorrent.min.js';
+            s.onload = function () { if (cb) cb(); };
+            s.onerror = function () { tpbNote('تعذّر تحميل مكتبة WebTorrent من CDN.'); };
+            document.head.appendChild(s);
+        }
+
+        function playTorrent(stream) {
+            stopNative();
+            box.classList.add('video-mode');
+            frame.removeAttribute('src');
+            tpbNote('⏳ جارٍ تحميل WebTorrent والاتصال بالتورنت...');
+            ensureWebTorrent(function () {
+                if (!window.WebTorrent) return;
+                try {
+                    wtClient = new window.WebTorrent();
+                } catch (e) { tpbNote('تعذّر بدء WebTorrent: ' + e.message); return; }
+                const magnet = 'magnet:?xt=urn:btih:' + stream.infoHash.toLowerCase() +
+                    '&dn=' + encodeURIComponent((stream.name || 'TPB+').split(/[\\/]/).pop());
+                let torrent;
+                try {
+                    torrent = wtClient.add(magnet, onTorrentReady);
+                } catch (e) { tpbNote('تعذّر بدء التورنت: ' + e.message); return; }
+                torrent.on('warning', function (err) { console.warn('torrent warning', err && err.message); });
+                torrent.on('error', function (err) { tpbNote('خطأ تورنت: ' + (err && err.message || err)); });
+                torrent.on('download', function () {
+                    if (!torrent.progress) return;
+                    const pct = Math.floor(torrent.progress * 100);
+                    const mb = torrent.downloadSpeed ? (torrent.downloadSpeed / 1024 / 1024).toFixed(1) : '0';
+                    tpbNote('⏳ جارٍ التحميل: ' + pct + '% (' + mb + ' MB/ث)');
+                });
+
+                function onTorrentReady(t) {
+                    const file = pickPlayableFile(t, stream.fileIdx);
+                    if (!file) {
+                        tpbNote('لا يمكن تشغيل هذا التورنت في المتصفح (صيغة غير مدعومة). جرّب تدفقاً آخر.');
+                        return;
+                    }
+                    tpbNote('▶ جارٍ التشغيل عبر تورنت: ' + file.name);
+                    try {
+                        file.renderTo(video, { autoplay: true });
+                    } catch (e) { tpbNote('تعذّر تشغيل الملف: ' + e.message); }
+                }
+            });
+        }
+
+        function pickPlayableFile(torrent, fileIdx) {
+            const files = torrent.files || [];
+            if (!files.length) return null;
+            const playable = /\.(mp4|m4v|webm|mov|ogv|ogg)([?#]|$)/i;
+            const candidate = files[fileIdx];
+            if (candidate && playable.test(candidate.name || '')) return candidate;
+            return files.slice().sort(function (a, b) { return b.length - a.length; }).find(function (f) { return playable.test(f.name || ''); }) || null;
+        }
+
+        const tpbBtn = document.createElement('button');
+        tpbBtn.className = 'server-btn';
+        tpbBtn.textContent = '⚡ TPB+ تورنت';
+        tpbBtn.addEventListener('click', openTpb);
+        serversEl.appendChild(tpbBtn);
     </script>
 </body>
 </html>

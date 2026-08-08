@@ -381,6 +381,7 @@
         const PLACEHOLDER_POSTER = 'https://placehold.co/300x450/11141f/1ba94c?text=%D8%B3%D8%B9%D9%88%D8%AF%D9%8A+%D8%A8%D9%84%D8%A7%D9%8A';
         let allData = [];
         let currentFilter = 'all';
+        let currentItem = null;
 
         async function fetchMovies() {
             try {
@@ -472,6 +473,9 @@
 
         function openModal(group) {
             const first = group[0];
+            const isMovie = /فيلم|افلام/i.test(first.category || '') || /^فيلم/.test(first.title || '') || first.episode_number === 'فيلم';
+            const epNum = parseInt((first.episode_number || '').match(/\d+/)?.[0] || '', 10) || 1;
+            currentItem = { title: first.title, type: isMovie ? 'movie' : 'series', ep: epNum };
             document.getElementById('mPoster').src = first.poster_url || PLACEHOLDER_POSTER;
             document.getElementById('mTitle').textContent = first.title;
             document.getElementById('mCat').textContent = first.category || 'غير مصنف';
@@ -485,6 +489,7 @@
                 chip.onclick = () => {
                     eps.querySelectorAll('.ep-chip').forEach(c => c.classList.remove('active'));
                     chip.classList.add('active');
+                    currentItem.ep = parseInt((m.episode_number || '').match(/\d+/)?.[0] || '', 10) || 1;
                     loadPlayer(m.video_url);
                 };
                 eps.appendChild(chip);
@@ -493,12 +498,21 @@
             loadPlayer(first.video_url);
         }
 
+        function playerLink(u) {
+            if (u.indexOf('player.html') === 0 && currentItem) {
+                const sep = u.indexOf('?') === -1 ? '?' : '&';
+                u += sep + 't=' + encodeURIComponent(currentItem.title || '') +
+                    '&ty=' + (currentItem.type || 'series') + '&e=' + (currentItem.ep || 1);
+            }
+            return u;
+        }
+
         function loadPlayer(videoUrl) {
             const frame = document.getElementById('mPlayer');
             if (!videoUrl) { frame.removeAttribute('src'); return; }
             const u = videoUrl.trim();
             if (u.indexOf('player.html') === 0) {
-                frame.src = u;
+                frame.src = playerLink(u);
                 return;
             }
             const yt = u.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -515,6 +529,7 @@
         function closeModal() {
             document.getElementById('modal').classList.remove('open');
             document.getElementById('mPlayer').removeAttribute('src');
+            currentItem = null;
         }
 
         document.getElementById('searchInput').addEventListener('input', e => {
