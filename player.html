@@ -229,6 +229,39 @@
 
         function tpbNote(msg) { tpbStatus.textContent = msg || ''; }
 
+        function rankQuality(q) {
+            const t = String(q || '').toLowerCase();
+            if (/2160|4k|uhd/.test(t)) return 2160;
+            const m = /(\d{3,4})p/.exec(t);
+            return m ? Number(m[1]) : 0;
+        }
+
+        function parseTpbStreams(json) {
+            const out = [];
+            const seen = new Set();
+            for (const st of (json.streams || [])) {
+                const infoHash = st.infoHash || (typeof st.url === 'string' && /btih:([a-fA-F0-9]{40})/i.exec(st.url)?.[1]);
+                if (!infoHash) continue;
+                const fileIdx = st.fileIdx != null ? Number(st.fileIdx) : 0;
+                const dk = infoHash + ':' + fileIdx;
+                if (seen.has(dk)) continue;
+                seen.add(dk);
+                const title = st.title || st.name || 'TPB+';
+                const size = (title.match(/(\d+(?:[.,]\d+)?\s*(?:GB|MB|KB))/i) || [])[1] || '';
+                const seeds = (title.match(/👤\s*(\d+)/) || [])[1];
+                out.push({
+                    infoHash,
+                    fileIdx,
+                    quality: String(st.tag || '').toLowerCase() || 'auto',
+                    name: title.split('\n')[0].trim(),
+                    size,
+                    seeders: seeds ? Number(seeds) : null
+                });
+            }
+            out.sort(function (a, b) { return rankQuality(b.quality) - rankQuality(a.quality); });
+            return out;
+        }
+
         function openTpb() {
             if (!qTitle) { tpbNote('لا يتوفر عنوان لهذه الحلقة لإجراء بحث TPB+. أعد فتح المشغل من الصفحة الرئيسية.'); return; }
             tpbList.innerHTML = '';
@@ -241,16 +274,23 @@
                         tpbNote('تعذّر تحويل العنوان إلى IMDb: ' + ((res && res.error) || 'لا توجد مطابقة.'));
                         return null;
                     }
-                    return fetch('/api/tpb?imdb=' + res.imdbId + '&type=' + qType + (qType === 'series' ? '&season=1&episode=' + qEp : '')).then(function (r) { return r.json(); });
+                    const idPath = qType === 'series' ? res.imdbId + ':1:' + qEp : res.imdbId;
+                    return fetch('https://thepiratebay-plus.strem.fun/stream/' + qType + '/' + idPath + '.json');
+                })
+                .then(function (r) {
+                    if (!r) return null;
+                    if (!r.ok) throw new Error('TPB+ HTTP ' + r.status);
+                    return r.json();
                 })
                 .then(function (d) {
                     if (!d) return;
-                    if (!d.streams || !d.streams.length) {
+                    const streams = parseTpbStreams(d);
+                    if (!streams.length) {
                         tpbNote('لا توجد تدفقات TPB+ متاحة لهذا المحتوى حالياً. جرب لاحقاً أو استخدم المشغلات أعلاه.');
                         return;
                     }
                     tpbNote('اختر تدفقاً: (الجودة الأعلى أولاً)');
-                    d.streams.forEach(function (st) {
+                    streams.forEach(function (st) {
                         const btn = document.createElement('button');
                         btn.className = 'server-btn';
                         const meta = [st.quality, st.size, st.seeders != null ? '👤 ' + st.seeders : null].filter(Boolean).join(' · ');
