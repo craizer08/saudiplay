@@ -299,13 +299,13 @@
     <div class="wrap">
 
         <header>
-            <a href="index.html" class="logo"><span class="dot"></span><span class="red">سعودي بلاي</span></a>
+            <a href="/" class="logo"><span class="dot"></span><span class="red">سعودي بلاي</span></a>
             <nav>
                 <ul>
                     <li><a onclick="filterCategory('all')">الرئيسية</a></li>
                     <li><a onclick="filterCategory('مسلسل')">مسلسلات</a></li>
                     <li><a onclick="filterCategory('فيلم')">أفلام</a></li>
-                    <li><a href="channels.html">قنوات مباشرة</a></li>
+                    <li><a href="/channels.html">قنوات مباشرة</a></li>
                 </ul>
             </nav>
             <div class="search-box">
@@ -324,7 +324,7 @@
                     تصفح المسلسلات
                 </button>
                 <button class="btn btn-ghost" onclick="filterCategory('فيلم')">تصفح الأفلام</button>
-                <a class="btn btn-ghost" href="channels.html">قنوات مباشرة</a>
+                <a class="btn btn-ghost" href="/channels.html">قنوات مباشرة</a>
             </div>
             <div class="stats">
                 <div class="stat"><b id="statAll">0</b><span>عنصر متاح</span></div>
@@ -359,7 +359,7 @@
 
     <div class="modal" id="modal">
         <div class="modal-box">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <button class="modal-close" onclick="dismissModal()">&times;</button>
             <div class="modal-top">
                 <img id="mPoster" class="modal-poster" alt="">
                 <div class="modal-head">
@@ -385,12 +385,14 @@
 
         async function fetchMovies() {
             try {
-                const r = await fetch('movies_data.json', { cache: 'no-store' });
+                const r = await fetch('/movies_data.json', { cache: 'no-store' });
                 if (r.ok) allData = await r.json();
             } catch (e) { console.error(e); }
             updateStats();
             buildFilters();
+            buildSlugMap();
             render();
+            routeFromUrl();
         }
 
         function updateStats() {
@@ -471,11 +473,80 @@
             empty.style.display = groups.length === 0 ? 'block' : 'none';
         }
 
-        function openModal(group) {
+        // ---------- روابط عميقة لكل مسلسل/فيلم ----------
+        let slugMap = new Map();
+
+        function slugify(s) {
+            const base = String(s || '').toLowerCase()
+                .replace(/[^\p{L}\p{N}]+/gu, '-')
+                .replace(/^-+|-+$/g, '') || 'x';
+            let h = 0;
+            for (const ch of base) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+            return base + '-' + h.toString(36);
+        }
+
+        function buildSlugMap() {
+            slugMap = new Map();
+            groupBySeries(allData).forEach(group => {
+                const s = slugify(group[0].title);
+                if (!slugMap.has(s)) slugMap.set(s, group);
+            });
+        }
+
+        function isMovieItem(m) {
+            return /فيلم|افلام/i.test(m.category || '') || /^فيلم/.test(m.title || '') || m.episode_number === 'فيلم';
+        }
+
+        function epTokenOf(m) {
+            const n = parseInt((m.episode_number || '').match(/\d+/)?.[0] || '', 10);
+            return n ? String(n) : '1';
+        }
+
+        function pathFor(group, record) {
+            const slug = slugify((group[0] && group[0].title) || '');
+            if (isMovieItem(record)) return '/v/' + slug;
+            return '/v/' + slug + '/' + epTokenOf(record);
+        }
+
+        function findByToken(group, token) {
+            const n = parseInt(token, 10);
+            if (!isNaN(n)) {
+                const hit = group.find(m => parseInt((m.episode_number || '').match(/\d+/)?.[0] || '', 10) === n);
+                if (hit) return hit;
+                if (n >= 1 && n <= group.length) return group[n - 1];
+            }
+            return group[0];
+        }
+
+        function routeFromUrl() {
+            const segs = window.location.pathname.split('/').filter(Boolean);
+            if (segs[0] === 'v' && segs[1]) {
+                const group = slugMap.get(decodeURIComponent(segs[1]));
+                if (group) {
+                    const ep = segs[2] ? decodeURIComponent(segs[2]) : null;
+                    openModal(group, ep ? findByToken(group, ep) : group[0]);
+                    return;
+                }
+            }
+            closeModal();
+        }
+
+        function selectEpisode(group, m) {
+            const eps = document.getElementById('mEps');
+            eps.querySelectorAll('.ep-chip').forEach(c => c.classList.remove('active'));
+            const idx = group.indexOf(m);
+            const chips = eps.querySelectorAll('.ep-chip');
+            if (chips[idx]) chips[idx].classList.add('active');
+            currentItem = { title: m.title, type: isMovieItem(m) ? 'movie' : 'series', ep: epTokenOf(m) };
+            loadPlayer(m.video_url);
+            const p = pathFor(group, m);
+            if (window.location.pathname !== p) history.pushState(null, '', p);
+        }
+
+        function openModal(group, selected) {
             const first = group[0];
-            const isMovie = /فيلم|افلام/i.test(first.category || '') || /^فيلم/.test(first.title || '') || first.episode_number === 'فيلم';
-            const epNum = parseInt((first.episode_number || '').match(/\d+/)?.[0] || '', 10) || 1;
-            currentItem = { title: first.title, type: isMovie ? 'movie' : 'series', ep: epNum };
+            const sel = selected || first;
+            currentItem = { title: sel.title, type: isMovieItem(sel) ? 'movie' : 'series', ep: epTokenOf(sel) };
             document.getElementById('mPoster').src = first.poster_url || PLACEHOLDER_POSTER;
             document.getElementById('mTitle').textContent = first.title;
             document.getElementById('mCat').textContent = first.category || 'غير مصنف';
@@ -484,25 +555,31 @@
             eps.innerHTML = '';
             group.forEach((m, i) => {
                 const chip = document.createElement('button');
-                chip.className = 'ep-chip' + (i === 0 ? ' active' : '');
+                chip.className = 'ep-chip' + (m === sel ? ' active' : '');
                 chip.textContent = m.episode_number || ('حلقة ' + (i + 1));
-                chip.onclick = () => {
-                    eps.querySelectorAll('.ep-chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
-                    currentItem.ep = parseInt((m.episode_number || '').match(/\d+/)?.[0] || '', 10) || 1;
-                    loadPlayer(m.video_url);
-                };
+                chip.onclick = () => selectEpisode(group, m);
                 eps.appendChild(chip);
             });
             document.getElementById('modal').classList.add('open');
-            loadPlayer(first.video_url);
+            loadPlayer(sel.video_url);
+            const p = pathFor(group, sel);
+            if (window.location.pathname !== p) history.pushState(null, '', p);
+        }
+
+        function dismissModal() {
+            closeModal();
+            if (window.location.pathname !== '/') history.replaceState(null, '', '/');
         }
 
         function playerLink(u) {
-            if (u.indexOf('player.html') === 0 && currentItem) {
-                const sep = u.indexOf('?') === -1 ? '?' : '&';
-                u += sep + 't=' + encodeURIComponent(currentItem.title || '') +
-                    '&ty=' + (currentItem.type || 'series') + '&e=' + (currentItem.ep || 1);
+            if (u.indexOf('player.html') === 0) {
+                let out = '/' + u;
+                if (currentItem) {
+                    const sep = out.indexOf('?') === -1 ? '?' : '&';
+                    out += sep + 't=' + encodeURIComponent(currentItem.title || '') +
+                        '&ty=' + (currentItem.type || 'series') + '&e=' + (currentItem.ep || 1);
+                }
+                return out;
             }
             return u;
         }
@@ -542,7 +619,8 @@
         window.addEventListener('scroll', () => {
             document.getElementById('toTop').classList.toggle('show', window.scrollY > 500);
         });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+        window.addEventListener('popstate', () => routeFromUrl());
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissModal(); });
 
         window.onload = fetchMovies;
     </script>
