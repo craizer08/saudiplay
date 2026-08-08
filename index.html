@@ -8,10 +8,10 @@
     <meta name="keywords" content="سعودي بلاي, منصة سعودية, مشاهدة مسلسلات, مسلسلات مجانية, أفلام مجانية, مسلسلات تركية, مسلسلات هندية, مسلسلات مدبلجة, انمي, shahid saudi, saudi play">
     <meta name="author" content="سعودي بلاي">
     <meta name="robots" content="index, follow, max-image-preview:large">
-    <meta name="theme-color" content="#060d16">
+    <meta name="theme-color" content="#0b0b0f">
     <meta name="google-site-verification" content="khND-Ay0ZNszh2DifUzsOTwgJVROuM-dpkBSe0-KQK8" />
     <link rel="canonical" href="https://saudiplay.vercel.app/">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230e7a36'/%3E%3Cstop offset='.5' stop-color='%231ba94c'/%3E%3Cstop offset='1' stop-color='%23e7c069'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%23060d16'/%3E%3Ccircle cx='32' cy='32' r='22' fill='url(%23g)'/%3E%3Cpath d='M26 22 L46 32 L26 42 Z' fill='white'/%3E%3C/svg%3E">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23e50914'/%3E%3Cstop offset='1' stop-color='%23b20710'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='%230b0b0f'/%3E%3Ccircle cx='32' cy='32' r='22' fill='url(%23g)'/%3E%3Cpath d='M26 22 L46 32 L26 42 Z' fill='white'/%3E%3C/svg%3E">
 
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="سعودي بلاي">
@@ -47,228 +47,207 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #060d16;
-            --bg2: #0a1420;
-            --card: #0f1a26;
-            --card2: #14232f;
-            --line: rgba(255, 255, 255, 0.07);
-            --tx: #eef0f6;
-            --mut: #8f95a8;
-            --saudi: #1ba94c;
-            --saudi-dark: #0e7a36;
-            --lime: #8BC34A;
-            --teal: #00A3B8;
-            --navy: #005F9E;
-            --gold: #e7c069;
-            --grad: linear-gradient(135deg, #0e7a36 0%, #1ba94c 38%, #00a3b8 72%, #e7c069 100%);
+            --bg: #0b0b0f;
+            --bg-2: #101018;
+            --panel: #16161f;
+            --card: #1d1d28;
+            --card-hover: #262633;
+            --red: #e50914;
+            --red-dark: #b20710;
+            --red-light: #ff3b46;
+            --text: #f5f5f7;
+            --mut: #9a9aa8;
+            --border: #26262f;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            --radius: 10px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
             background: var(--bg);
-            color: var(--tx);
-            font-weight: 500;
+            color: var(--text);
+            font-weight: 400;
             min-height: 100vh;
             overflow-x: hidden;
+            line-height: 1.6;
         }
         a { text-decoration: none; color: inherit; }
 
-        ::selection { background: rgba(27, 169, 76, .35); }
-        ::-webkit-scrollbar { width: 10px; }
+        ::selection { background: rgba(229, 9, 20, .35); }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(var(--saudi), var(--gold)); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #33333f; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--red); }
 
-        /* ---------- Vision 2030 backdrop ---------- */
-        .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-        .aurora::before, .aurora::after {
-            content: ''; position: absolute; border-radius: 50%; filter: blur(90px);
+        /* ---------- navbar ---------- */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            transition: background .35s ease, box-shadow .35s ease;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, .85), transparent);
         }
-        .aurora::before { width: 620px; height: 620px; background: rgba(0, 163, 184, .30); top: -200px; right: -140px; animation: drift 18s ease-in-out infinite alternate; }
-        .aurora::after { width: 520px; height: 520px; background: rgba(139, 195, 74, .24); bottom: -220px; left: -160px; animation: drift 22s ease-in-out infinite alternate-reverse; }
-        .aurora .b3 { position: absolute; width: 460px; height: 460px; border-radius: 50%; filter: blur(110px); background: rgba(0, 95, 158, .34); top: 34%; left: 56%; animation: drift 26s ease-in-out infinite alternate; }
-        .aurora .b4 { position: absolute; width: 380px; height: 380px; border-radius: 50%; filter: blur(100px); background: rgba(231, 192, 105, .20); top: -120px; left: 30%; animation: drift 20s ease-in-out infinite alternate-reverse; }
-        .aurora .b5 { position: absolute; width: 320px; height: 320px; border-radius: 50%; filter: blur(96px); background: rgba(19, 122, 43, .42); bottom: 4%; right: 26%; animation: drift 24s ease-in-out infinite alternate; }
-        @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(70px, 46px) scale(1.18); } }
-
-        .sunburst { position: fixed; top: 50%; left: 50%; width: 150vmax; height: 150vmax; z-index: 0; pointer-events: none; opacity: .05;
-            background: repeating-conic-gradient(from 0deg, rgba(231, 192, 105, .9) 0deg 1.2deg, transparent 1.2deg 7deg);
-            animation: spin 140s linear infinite; }
-        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-
-        .star-grid { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .4;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='92' height='92' viewBox='0 0 92 92'%3E%3Cg fill='none' stroke='%2300A3B8' stroke-opacity='.22' stroke-width='1'%3E%3Cpath d='M46 8 L53 36 L79 22 L57 45 L86 49 L56 55 L70 80 L46 60 L23 80 L37 55 L6 49 L35 45 L13 22 L39 36 Z'/%3E%3Ccircle cx='46' cy='46' r='2' fill='%23E7C069' fill-opacity='.55' stroke='none'/%3E%3C/g%3E%3Ccircle cx='0' cy='0' r='1.4' fill='%23E7C069' fill-opacity='.4'/%3E%3Ccircle cx='92' cy='92' r='1.4' fill='%23E7C069' fill-opacity='.4'/%3E%3Ccircle cx='0' cy='92' r='1.4' fill='%23E7C069' fill-opacity='.4'/%3E%3Ccircle cx='92' cy='0' r='1.4' fill='%23E7C069' fill-opacity='.4'/%3E%3C/svg%3E");
-            background-size: 92px 92px;
-            mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 78%);
-            -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 78%);
+        .navbar.scrolled {
+            background: var(--bg);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, .5);
+            border-bottom: 1px solid var(--border);
         }
-
-        .wrap { position: relative; z-index: 1; }
-
-        /* ---------- header ---------- */
-        header {
-            position: sticky; top: 0; z-index: 100;
+        .navbar-inner {
+            max-width: 1400px; margin: 0 auto; padding: 0 4%; height: 68px;
             display: flex; align-items: center; justify-content: space-between; gap: 20px;
-            padding: 16px 5%;
-            background: rgba(7, 8, 16, .6);
-            backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
-            border-bottom: 1px solid var(--line);
         }
-        .logo { font-size: 28px; font-weight: 700; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
-        .logo .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--grad); box-shadow: 0 0 14px rgba(27, 169, 76, .8); }
-        .logo .red { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo .white { color: var(--tx); }
-        nav ul { display: flex; list-style: none; gap: 26px; }
-        nav ul li a { position: relative; font-size: 16px; font-weight: 600; color: var(--mut); cursor: pointer; padding: 6px 2px; transition: color .25s; }
-        nav ul li a::after { content: ''; position: absolute; right: 0; bottom: 0; width: 0; height: 2px; border-radius: 2px; background: var(--grad); transition: width .3s; }
-        nav ul li a:hover { color: var(--tx); }
-        nav ul li a:hover::after { width: 100%; }
-        .search-box { position: relative; }
+        .nav-left { display: flex; align-items: center; gap: 30px; min-width: 0; }
+        .logo { font-size: 26px; font-weight: 800; letter-spacing: 1px; color: var(--red); white-space: nowrap; }
+        .logo span { color: var(--text); }
+        nav ul { display: flex; list-style: none; gap: 22px; }
+        nav ul li a { position: relative; font-size: 15px; font-weight: 600; color: var(--mut); cursor: pointer; padding: 6px 2px; transition: color .2s; }
+        nav ul li a::after { content: ''; position: absolute; right: 0; bottom: 0; left: 0; width: 100%; height: 0; border-radius: 2px; background: var(--red); transition: height .2s; }
+        nav ul li a:hover { color: var(--text); }
+        nav ul li a.active { color: var(--text); }
+        nav ul li a.active::after { height: 2px; }
+        .nav-right { display: flex; align-items: center; }
+        .search-box { position: relative; display: flex; align-items: center; }
+        .search-box .search-icon { position: absolute; right: 12px; font-size: 14px; color: var(--mut); pointer-events: none; }
         .search-box input {
-            padding: 11px 46px 11px 18px; width: 280px; border-radius: 30px;
-            border: 1px solid var(--line); background: rgba(255, 255, 255, .04); color: var(--tx);
-            font-family: inherit; font-size: 14px; outline: none; transition: all .3s;
+            width: 260px; padding: 9px 38px 9px 16px; border-radius: 24px;
+            border: 1px solid transparent; background: rgba(255, 255, 255, .08);
+            color: var(--text); font-family: inherit; font-size: 14px; outline: none; transition: all .25s;
         }
+        .search-box input:focus { background: rgba(255, 255, 255, .14); border-color: var(--red); }
         .search-box input::placeholder { color: var(--mut); }
-        .search-box input:focus { border-color: var(--saudi); background: rgba(255, 255, 255, .06); box-shadow: 0 0 0 4px rgba(27, 169, 76, .12); }
-        .search-box svg { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--mut); pointer-events: none; }
 
         /* ---------- hero ---------- */
-        .hero { text-align: center; padding: 84px 5% 40px; }
+        .hero {
+            position: relative; padding: 140px 4% 60px;
+            background: linear-gradient(180deg, #0d0d13, var(--bg) 92%);
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .hero .glow { position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none; }
+        .hero .glow.g1 { width: 480px; height: 480px; background: rgba(229, 9, 20, .18); top: -180px; left: -120px; }
+        .hero .glow.g2 { width: 420px; height: 420px; background: rgba(178, 7, 16, .14); bottom: -160px; right: -100px; }
         .badge {
             display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 18px; border-radius: 30px; font-size: 13px; font-weight: 700; color: var(--gold);
-            border: 1px solid rgba(231, 192, 105, .3); background: rgba(231, 192, 105, .08);
-            margin-bottom: 22px;
+            background: var(--red); color: #fff; font-size: 13px; font-weight: 700;
+            padding: 5px 16px; border-radius: 20px; margin-bottom: 18px;
+            box-shadow: 0 4px 14px rgba(229, 9, 20, .4);
         }
-        .badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px var(--gold); animation: blink 1.6s infinite; }
+        .badge .pulse { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px #fff; animation: blink 1.6s infinite; }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
-        .hero h1 { font-size: 58px; font-weight: 700; line-height: 1.25; margin-bottom: 16px; letter-spacing: .5px; }
-        .hero h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { color: var(--mut); font-size: 19px; max-width: 640px; margin: 0 auto 34px; line-height: 2; }
-        .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .hero h1 { font-size: clamp(36px, 5vw, 58px); font-weight: 800; line-height: 1.2; margin-bottom: 14px; }
+        .hero h1 .grad { color: var(--red-light); }
+        .hero p { color: var(--mut); font-size: 16px; max-width: 640px; line-height: 2; margin-bottom: 30px; }
+        .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn {
-            padding: 14px 34px; border-radius: 34px; font-family: inherit; font-size: 16px; font-weight: 700;
-            cursor: pointer; transition: all .3s; border: none; display: inline-flex; align-items: center; gap: 10px;
+            padding: 12px 30px; border-radius: 6px; font-family: inherit; font-size: 15px; font-weight: 700;
+            cursor: pointer; transition: all .2s; border: none; display: inline-flex; align-items: center; gap: 10px;
         }
-        .btn-primary {
-            background: var(--grad); color: #fff;
-            box-shadow: 0 10px 34px rgba(27, 169, 76, .4);
-        }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 44px rgba(27, 169, 76, .55); }
-        .btn-ghost { background: transparent; color: var(--tx); border: 1px solid rgba(255, 255, 255, .18); }
-        .btn-ghost:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-3px); }
+        .btn-primary { background: var(--red); color: #fff; box-shadow: 0 6px 24px rgba(229, 9, 20, .4); }
+        .btn-primary:hover { background: var(--red-light); transform: translateY(-2px); }
+        .btn-ghost { background: rgba(255, 255, 255, .14); color: #fff; }
+        .btn-ghost:hover { background: rgba(255, 255, 255, .25); }
 
-        .stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-top: 48px; }
+        .stats { display: flex; gap: 44px; justify-content: center; flex-wrap: wrap; margin-top: 46px; }
         .stat { text-align: center; }
-        .stat b { display: block; font-size: 30px; font-weight: 700; background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat b { display: block; font-size: 30px; font-weight: 800; color: var(--red); }
         .stat span { color: var(--mut); font-size: 14px; margin-top: 2px; display: block; }
 
         /* ---------- content ---------- */
-        .container { padding: 30px 5% 70px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 40px 4% 70px; }
         .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 26px; }
-        .section-title { font-size: 26px; font-weight: 700; display: flex; align-items: center; gap: 12px; }
-        .section-title::before { content: ''; width: 5px; height: 26px; border-radius: 4px; background: var(--grad); }
-        .section-title .count { font-size: 14px; font-weight: 700; color: var(--mut); background: rgba(255,255,255,.05); border: 1px solid var(--line); padding: 3px 12px; border-radius: 20px; }
+        .section-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 12px; border-right: 4px solid var(--red); padding-right: 12px; }
+        .section-title .count { font-size: 13px; font-weight: 700; color: var(--mut); background: rgba(255,255,255,.05); border: 1px solid var(--border); padding: 3px 12px; border-radius: 20px; }
 
-        .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 28px; }
+        .filters { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 28px; }
         .chip {
-            padding: 9px 20px; border-radius: 26px; font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
-            background: rgba(255, 255, 255, .04); color: var(--mut); border: 1px solid var(--line); transition: all .25s;
+            padding: 8px 18px; border-radius: 20px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+            background: var(--panel); color: var(--mut); border: 1px solid var(--border); transition: all .2s;
         }
-        .chip:hover { color: var(--tx); border-color: rgba(27, 169, 76, .5); transform: translateY(-1px); }
-        .chip.active { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 8px 24px rgba(27, 169, 76, .35); }
+        .chip:hover { color: var(--text); border-color: var(--red); transform: translateY(-1px); }
+        .chip.active { background: var(--red); color: #fff; border-color: transparent; box-shadow: 0 6px 20px rgba(229, 9, 20, .35); }
 
         /* ---------- grid & cards ---------- */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 26px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 16px; }
         .card {
-            position: relative; border-radius: 16px; overflow: hidden; cursor: pointer;
-            background: var(--card); border: 1px solid var(--line);
-            aspect-ratio: 2 / 3;
-            transition: transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;
+            position: relative; border-radius: var(--radius); overflow: hidden; cursor: pointer;
+            background: var(--card); border: 1px solid var(--border);
+            transition: transform .25s ease, box-shadow .25s ease;
             animation: rise .5s ease both;
         }
-        .card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 24px 50px rgba(0, 0, 0, .65), 0 0 0 1px rgba(27, 169, 76, .4); border-color: transparent; }
-        .card .poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s; }
-        .card:hover .poster { transform: scale(1.09); }
-        .card .shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(7,8,16,0) 35%, rgba(7,8,16,.55) 68%, rgba(7,8,16,.92) 100%); }
-        .card .glowline { position: absolute; inset: 0; opacity: 0; transition: opacity .35s; background: linear-gradient(180deg, rgba(27,169,76,.12), transparent 45%); }
-        .card:hover .glowline { opacity: 1; }
+        .card:hover { transform: scale(1.06) translateY(-4px); box-shadow: var(--shadow); z-index: 5; }
+        .card .poster { aspect-ratio: 2 / 3; width: 100%; object-fit: cover; display: block; background: linear-gradient(135deg, #20202c, #14141d); }
+        .card .shade, .card .glowline { display: none; }
+        .badge-tag { position: absolute; top: 8px; left: 8px; z-index: 2; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: rgba(11, 11, 15, .82); border: 1px solid var(--red); backdrop-filter: blur(4px); }
+        .badge-eps { position: absolute; top: 8px; right: 8px; z-index: 2; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(229, 9, 20, .4); }
 
-        .badge-tag { position: absolute; top: 12px; right: 12px; z-index: 2; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14); }
-        .badge-eps { position: absolute; top: 12px; left: 12px; z-index: 2; font-size: 11px; font-weight: 700; padding: 4px 11px; border-radius: 20px; background: var(--grad); color: #fff; box-shadow: 0 4px 14px rgba(27,169,76,.4); }
+        .card .info { padding: 10px; }
+        .card .info .title { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card .info .meta { font-size: 11px; color: var(--mut); margin-top: 4px; }
 
-        .card .info { position: absolute; right: 14px; left: 14px; bottom: 12px; z-index: 2; }
-        .card .info .title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card .info .meta { font-size: 12px; color: #c6c9d6; margin-top: 4px; opacity: .85; }
-
-        .card .play-overlay { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; background: rgba(7,8,16,.35); opacity: 0; transition: opacity .3s; }
+        .card .play-overlay { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; background: linear-gradient(to top, rgba(0, 0, 0, .85), transparent 60%); opacity: 0; transition: opacity .2s; }
         .card:hover .play-overlay { opacity: 1; }
         .play-icon {
-            width: 62px; height: 62px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            background: var(--grad); box-shadow: 0 0 0 6px rgba(27, 169, 76, .2), 0 12px 34px rgba(27, 169, 76, .5);
-            transform: scale(.6); transition: transform .35s cubic-bezier(.2,.8,.2,1);
+            width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            background: var(--red); box-shadow: 0 4px 16px rgba(229, 9, 20, .5);
+            transform: scale(.6); transition: transform .2s;
         }
         .card:hover .play-icon { transform: scale(1); }
-        .play-icon svg { width: 22px; height: 22px; fill: #fff; margin-right: -2px; }
+        .play-icon svg { width: 18px; height: 18px; fill: #fff; margin-right: -2px; }
 
         @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 
-        .empty { text-align: center; color: var(--mut); padding: 60px 0; font-size: 17px; }
+        .empty { text-align: center; color: var(--mut); padding: 60px 0; font-size: 16px; }
 
         /* ---------- skeleton ---------- */
-        .skeleton { border-radius: 16px; background: linear-gradient(100deg, #10131f 40%, #181c2c 50%, #10131f 60%); background-size: 200% 100%; animation: shim 1.4s infinite; aspect-ratio: 2/3; }
+        .skeleton { border-radius: var(--radius); background: linear-gradient(100deg, #16161f 40%, #1d1d28 50%, #16161f 60%); background-size: 200% 100%; animation: shim 1.4s infinite; aspect-ratio: 2/3; }
         @keyframes shim { to { background-position: -200% 0; } }
 
         /* ---------- modal ---------- */
-        .modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(4,5,10,.8); backdrop-filter: blur(10px); padding: 20px; }
+        .modal { position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center; background: rgba(0, 0, 0, .8); backdrop-filter: blur(4px); padding: 20px; }
         .modal.open { display: flex; }
         .modal-box {
             width: 100%; max-width: 920px; max-height: 92vh; overflow-y: auto;
-            background: linear-gradient(180deg, #12141f, #0d0f18);
-            border-radius: 22px; border: 1px solid var(--line);
-            padding: 24px; position: relative;
-            box-shadow: 0 40px 90px rgba(0,0,0,.7);
-            animation: rise .35s ease both;
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 14px; padding: 26px; position: relative;
+            box-shadow: var(--shadow); animation: rise .35s ease both;
         }
         .modal-close {
-            position: sticky; float: left; top: 0; z-index: 5;
-            background: rgba(255,255,255,.08); border: 1px solid var(--line); color: var(--tx);
-            width: 40px; height: 40px; border-radius: 50%; font-size: 20px; cursor: pointer; transition: all .25s;
+            position: absolute; top: 12px; left: 12px; z-index: 5;
+            background: rgba(255,255,255,.08); border: 1px solid var(--border); color: var(--text);
+            width: 34px; height: 34px; border-radius: 50%; font-size: 24px; cursor: pointer; transition: all .2s;
+            display: flex; align-items: center; justify-content: center; line-height: 1;
         }
-        .modal-close:hover { background: var(--saudi); transform: rotate(90deg); }
+        .modal-close:hover { background: var(--red); transform: rotate(90deg); }
         .modal-top { display: flex; gap: 22px; margin: 6px 0 20px; flex-wrap: wrap; }
-        .modal-poster { width: 150px; height: 225px; object-fit: cover; border-radius: 14px; background: var(--card); box-shadow: 0 14px 40px rgba(0,0,0,.5); border: 1px solid var(--line); }
+        .modal-poster { width: 150px; height: 225px; object-fit: cover; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); border: 1px solid var(--border); }
         .modal-head { flex: 1; min-width: 230px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
-        .modal-head h2 { font-size: 28px; font-weight: 700; line-height: 1.4; }
-        .modal-head .mcat { display: inline-flex; align-self: flex-start; background: var(--grad); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 24px; }
+        .modal-head h2 { font-size: 28px; font-weight: 800; line-height: 1.4; }
+        .modal-head .mcat { display: inline-flex; align-self: flex-start; background: var(--red); color: #fff; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 6px; }
         .modal-head .mmeta { color: var(--mut); font-size: 14px; }
-        .eps-label { font-size: 15px; font-weight: 700; color: var(--tx); margin: 6px 0 12px; display: flex; align-items: center; gap: 10px; }
-        .eps-label::before { content: ''; width: 4px; height: 18px; border-radius: 3px; background: var(--grad); }
+        .eps-label { font-size: 15px; font-weight: 800; color: var(--text); margin: 6px 0 12px; display: flex; align-items: center; gap: 10px; border-right: 4px solid var(--red); padding-right: 12px; }
         .eps { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 20px; max-height: 120px; overflow-y: auto; padding: 2px; }
         .ep-chip {
-            padding: 9px 18px; border-radius: 12px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
-            background: rgba(255,255,255,.05); border: 1px solid var(--line); color: var(--tx); transition: all .25s;
+            padding: 9px 18px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+            background: var(--card); border: 1px solid var(--border); color: var(--text); transition: all .2s;
         }
-        .ep-chip:hover { border-color: var(--saudi); transform: translateY(-2px); }
-        .ep-chip.active { background: var(--grad); border-color: transparent; box-shadow: 0 8px 20px rgba(27,169,76,.35); }
-        .player-frame { position: relative; width: 100%; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 16/9; border: 1px solid var(--line); }
+        .ep-chip:hover { border-color: var(--red); transform: translateY(-2px); }
+        .ep-chip.active { background: var(--red); border-color: transparent; box-shadow: 0 6px 20px rgba(229, 9, 20, .35); }
+        .player-frame { position: relative; width: 100%; background: #000; border-radius: var(--radius); overflow: hidden; aspect-ratio: 16/9; border: 1px solid var(--border); }
         .player-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
         .player-note { color: var(--mut); font-size: 12px; margin-top: 10px; line-height: 1.9; }
 
         /* ---------- footer & misc ---------- */
-        footer { text-align: center; color: var(--mut); font-size: 14px; padding: 30px 5% 46px; border-top: 1px solid var(--line); position: relative; z-index: 1; }
-        footer .f-logo { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-        footer .f-logo .red { background: var(--grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        footer { text-align: center; color: var(--mut); font-size: 13px; padding: 34px 4% 46px; border-top: 1px solid var(--border); background: #070709; position: relative; z-index: 1; }
+        footer .f-logo { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        footer .f-logo .red { color: var(--red); }
 
         #toTop {
             position: fixed; bottom: 26px; left: 26px; z-index: 150;
             width: 48px; height: 48px; border-radius: 50%; border: none; cursor: pointer;
-            background: var(--grad); color: #fff; box-shadow: 0 10px 30px rgba(27,169,76,.4);
+            background: var(--red); color: #fff; box-shadow: 0 10px 30px rgba(229, 9, 20, .4);
             opacity: 0; pointer-events: none; transform: translateY(16px); transition: all .3s;
             display: flex; align-items: center; justify-content: center;
         }
@@ -276,82 +255,86 @@
         #toTop:hover { transform: translateY(-3px); }
         #toTop svg { width: 20px; height: 20px; fill: #fff; }
 
-        @media (max-width: 820px) {
-            header { flex-wrap: wrap; padding: 12px 5%; }
-            .search-box { order: 3; width: 100%; }
-            .search-box input { width: 100%; }
-            nav ul { gap: 18px; }
-            .hero { padding: 56px 5% 30px; }
-            .hero h1 { font-size: 36px; }
-            .hero p { font-size: 16px; }
-            .stats { gap: 26px; margin-top: 34px; }
+        @media (max-width: 900px) {
+            nav ul { gap: 16px; }
+            .search-box input { width: 180px; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
             .modal-top { justify-content: center; text-align: center; }
             .modal-head { align-items: center; }
-            .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+        }
+        @media (max-width: 620px) {
+            .navbar-inner { height: auto; padding: 12px 4%; flex-wrap: wrap; gap: 10px; }
+            .nav-right { width: 100%; order: 3; }
+            .search-box input { width: 100%; }
+            .hero { padding-top: 130px; }
+            .hero h1 { font-size: 34px; }
+            .stats { gap: 24px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="aurora"><div class="b3"></div><div class="b4"></div><div class="b5"></div></div>
-    <div class="sunburst"></div>
-    <div class="star-grid"></div>
-    <div class="wrap">
-
-        <header>
-            <a href="/" class="logo"><span class="dot"></span><span class="red">سعودي بلاي</span></a>
-            <nav>
-                <ul>
-                    <li><a onclick="filterCategory('all')">الرئيسية</a></li>
-                    <li><a onclick="filterCategory('مسلسل')">مسلسلات</a></li>
-                    <li><a onclick="filterCategory('فيلم')">أفلام</a></li>
-                    <li><a href="/channels.html">قنوات مباشرة</a></li>
-                </ul>
-            </nav>
-            <div class="search-box">
-                <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M10 2a8 8 0 1 0 4.9 14.3l5 5 1.4-1.4-5-5A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/></svg>
-                <input type="text" id="searchInput" placeholder="ابحث عن مسلسل أو فيلم...">
+    <header id="navbar" class="navbar">
+        <div class="navbar-inner">
+            <div class="nav-left">
+                <a href="/" class="logo">سعودي<span>بلاي</span></a>
+                <nav>
+                    <ul>
+                        <li><a onclick="filterCategory('all')" class="active">الرئيسية</a></li>
+                        <li><a onclick="filterCategory('مسلسل')">مسلسلات</a></li>
+                        <li><a onclick="filterCategory('فيلم')">أفلام</a></li>
+                        <li><a href="/channels.html">قنوات مباشرة</a></li>
+                    </ul>
+                </nav>
             </div>
-        </header>
-
-        <section class="hero">
-            <span class="badge"><span class="pulse"></span> أكبر منصة سعودية مجانية · تحديث مستمر · جودة عالية</span>
-            <h1>أكبر منصة سعودية<br><span class="grad">مجانية لمشاهدة المسلسلات والأفلام</span></h1>
-            <p>منصتك السعودية المجانية لمشاهدة أفضل المسلسلات والأفلام التركية والكورية والهندية والآسيوية والأجنبية بجودة عالية، مع تحديث مستمر للحلقات الجديدة فور صدورها.</p>
-            <div class="hero-btns">
-                <button class="btn btn-primary" onclick="filterCategory('مسلسل')">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#fff" d="M8 5v14l11-7z"/></svg>
-                    تصفح المسلسلات
-                </button>
-                <button class="btn btn-ghost" onclick="filterCategory('فيلم')">تصفح الأفلام</button>
-                <a class="btn btn-ghost" href="/channels.html">قنوات مباشرة</a>
+            <div class="nav-right">
+                <div class="search-box">
+                    <span class="search-icon">&#128269;</span>
+                    <input type="text" id="searchInput" placeholder="ابحث عن مسلسل أو فيلم...">
+                </div>
             </div>
-            <div class="stats">
-                <div class="stat"><b id="statAll">0</b><span>عنصر متاح</span></div>
-                <div class="stat"><b id="statSeries">0</b><span>مسلسل</span></div>
-                <div class="stat"><b id="statMovies">0</b><span>فيلم</span></div>
-                <div class="stat"><b id="statCats">0</b><span>تصنيف</span></div>
-            </div>
-        </section>
-
-        <div class="container">
-            <div class="toolbar">
-                <h2 class="section-title" id="sectionTitle">أحدث الإضافات <span class="count" id="countBadge">0</span></h2>
-            </div>
-            <div class="filters" id="filters"></div>
-            <div class="grid" id="grid">
-                <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-                <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-            </div>
-            <div class="empty" id="empty" style="display:none;">لا توجد نتائج مطابقة.</div>
         </div>
+    </header>
 
-        <footer>
-            <div class="f-logo"><span class="red">سعودي بلاي</span></div>
-            أكبر منصة سعودية مجانية للمشاهدة © 2026 — جميع الحقوق محفوظة.<br>
-            جميع المواد المعروضة متاحة للمشاهدة فقط من خلال المصادر المفتوحة.
-        </footer>
+    <section class="hero">
+        <div class="glow g1"></div>
+        <div class="glow g2"></div>
+        <span class="badge"><span class="pulse"></span> أكبر منصة سعودية مجانية · تحديث مستمر · جودة عالية</span>
+        <h1>أكبر منصة سعودية<br><span class="grad">مجانية لمشاهدة المسلسلات والأفلام</span></h1>
+        <p>منصتك السعودية المجانية لمشاهدة أفضل المسلسلات والأفلام التركية والكورية والهندية والآسيوية والأجنبية بجودة عالية، مع تحديث مستمر للحلقات الجديدة فور صدورها.</p>
+        <div class="hero-btns">
+            <button class="btn btn-primary" onclick="filterCategory('مسلسل')">
+                <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#fff" d="M8 5v14l11-7z"/></svg>
+                تصفح المسلسلات
+            </button>
+            <button class="btn btn-ghost" onclick="filterCategory('فيلم')">تصفح الأفلام</button>
+            <a class="btn btn-ghost" href="/channels.html">قنوات مباشرة</a>
+        </div>
+        <div class="stats">
+            <div class="stat"><b id="statAll">0</b><span>عنصر متاح</span></div>
+            <div class="stat"><b id="statSeries">0</b><span>مسلسل</span></div>
+            <div class="stat"><b id="statMovies">0</b><span>فيلم</span></div>
+            <div class="stat"><b id="statCats">0</b><span>تصنيف</span></div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="toolbar">
+            <h2 class="section-title" id="sectionTitle">أحدث الإضافات <span class="count" id="countBadge">0</span></h2>
+        </div>
+        <div class="filters" id="filters"></div>
+        <div class="grid" id="grid">
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+            <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        </div>
+        <div class="empty" id="empty" style="display:none;">لا توجد نتائج مطابقة.</div>
     </div>
+
+    <footer>
+        <div class="f-logo"><span class="red">سعودي بلاي</span></div>
+        أكبر منصة سعودية مجانية للمشاهدة © 2026 — جميع الحقوق محفوظة.<br>
+        جميع المواد المعروضة متاحة للمشاهدة فقط من خلال المصادر المفتوحة.
+    </footer>
 
     <button id="toTop" aria-label="أعلى" onclick="window.scrollTo({top:0,behavior:'smooth'})">
         <svg viewBox="0 0 24 24"><path d="M7.4 15.4l4.6-4.6 4.6 4.6 1.4-1.4L12 8l-6 6z"/></svg>
@@ -378,7 +361,7 @@
     </div>
 
     <script>
-        const PLACEHOLDER_POSTER = 'https://placehold.co/300x450/11141f/1ba94c?text=%D8%B3%D8%B9%D9%88%D8%AF%D9%8A+%D8%A8%D9%84%D8%A7%D9%8A';
+        const PLACEHOLDER_POSTER = 'https://placehold.co/300x450/1d1d28/e50914?text=%D8%B3%D8%B9%D9%88%D8%AF%D9%8A+%D8%A8%D9%84%D8%A7%D9%8A';
         let allData = [];
         let currentFilter = 'all';
         let currentItem = null;
@@ -427,6 +410,9 @@
         function filterCategory(cat) {
             currentFilter = cat;
             document.querySelectorAll('.chip').forEach(ch => ch.classList.toggle('active', ch.dataset.cat === cat));
+            document.querySelectorAll('#navbar nav ul li a').forEach(a => a.classList.remove('active'));
+            const activeLink = document.querySelector('#navbar nav ul li a[onclick="filterCategory(\'' + cat + '\')"]');
+            if (activeLink) activeLink.classList.add('active');
             document.getElementById('sectionTitle').innerHTML =
                 cat === 'all' ? 'أحدث الإضافات <span class="count" id="countBadge">0</span>'
                 : (cat === 'مسلسل' || cat === 'فيلم' ? (cat === 'مسلسل' ? 'المسلسلات <span class="count" id="countBadge">0</span>' : 'الأفلام <span class="count" id="countBadge">0</span>') : `تصنيف: ${cat} <span class="count" id="countBadge">0</span>`);
@@ -618,6 +604,7 @@
 
         window.addEventListener('scroll', () => {
             document.getElementById('toTop').classList.toggle('show', window.scrollY > 500);
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
         });
         window.addEventListener('popstate', () => routeFromUrl());
         document.addEventListener('keydown', e => { if (e.key === 'Escape') dismissModal(); });
